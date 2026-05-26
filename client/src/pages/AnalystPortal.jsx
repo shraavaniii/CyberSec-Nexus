@@ -107,7 +107,11 @@ function AnalystPortal() {
             🕐 Activity Timeline
           </h2>
           {auditLoading && (
-            <p className="text-yellow-400">Loading activity...</p>
+            <div className="flex flex-col gap-3 animate-pulse">
+              <div className="h-16 bg-gray-800 rounded-lg"></div>
+              <div className="h-16 bg-gray-800 rounded-lg"></div>
+              <div className="h-16 bg-gray-800 rounded-lg"></div>
+            </div>
           )}
           {!auditLoading && auditLogs.length === 0 && (
             <p className="text-gray-400">
@@ -140,7 +144,11 @@ function AnalystPortal() {
             📁 Uploaded Reports
           </h2>
           {reportsLoading && (
-            <p className="text-yellow-400">Loading reports...</p>
+            <div className="flex flex-col gap-3 animate-pulse">
+              <div className="h-12 bg-gray-800 rounded-lg"></div>
+              <div className="h-12 bg-gray-800 rounded-lg"></div>
+              <div className="h-12 bg-gray-800 rounded-lg"></div>
+            </div>
           )}
           {!reportsLoading && reports.length === 0 && (
             <p className="text-gray-400">No reports uploaded yet.</p>
@@ -181,7 +189,11 @@ function AnalystPortal() {
           📡 Live Cyber Threat Intelligence
         </h2>
         {newsLoading && (
-          <p className="text-yellow-400">Fetching latest threat news...</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-pulse">
+            <div className="h-48 bg-gray-800 rounded-lg"></div>
+            <div className="h-48 bg-gray-800 rounded-lg"></div>
+            <div className="h-48 bg-gray-800 rounded-lg"></div>
+          </div>
         )}
         {!newsLoading && news.length === 0 && (
           <p className="text-gray-400">Could not load news. Try again later.</p>

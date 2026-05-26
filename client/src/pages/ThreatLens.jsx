@@ -95,9 +95,32 @@ function ThreatLens() {
         </div>
 
         {loading && (
-          <div className="flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-blue-400 animate-ping" />
-            <p className="text-blue-300 animate-pulse">Scanning...</p>
+          <div
+            className="rounded-2xl p-6 mt-4 animate-pulse"
+            style={{
+              background: "rgba(0,100,255,0.08)",
+              border: "1px solid rgba(0,150,255,0.25)"
+            }}
+          >
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-3 h-3 rounded-full bg-cyan-400 animate-ping" />
+              <p className="text-cyan-300 font-semibold tracking-wide">
+                Scanning Threat Intelligence...
+              </p>
+            </div>
+
+            <div className="mb-5">
+              <div className="w-full h-3 rounded-full bg-gray-800 overflow-hidden">
+                <div className="h-full w-2/3 bg-cyan-500 animate-pulse rounded-full" />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="h-4 bg-gray-800 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-800 rounded w-5/6"></div>
+              <div className="h-4 bg-gray-800 rounded w-2/3"></div>
+              <div className="h-20 bg-gray-800 rounded-xl mt-4"></div>
+            </div>
           </div>
         )}
 

@@ -13,6 +13,19 @@ const trustedDomains = [
   "stackoverflow.com", "gmail.com", "outlook.com", "yahoo.com"
 ]
 
+const disposableDomains = [
+  "mailinator.com",
+  "10minutemail.com",
+  "guerrillamail.com",
+  "tempmail.com",
+  "trashmail.com",
+  "yopmail.com",
+  "fakeinbox.com",
+  "temp-mail.org",
+  "dispostable.com",
+  "sharklasers.com"
+]
+
 // Extract Domain from Input
 const extractDomain = (input) => {
   try {
@@ -129,6 +142,15 @@ router.post("/analyze", (req, res) => {
   if (emailPattern.test(value)) {
     const emailPrefix = value.split("@") [0]
     const emailDomain = value.split("@")[1]
+
+    // DISPOSABLE EMAIL CHECK
+    if (disposableDomains.includes(emailDomain)) {
+      riskScore += 4
+      detectedReasons.push(
+        `🚨 Disposable/Fake email domain detected: "${emailDomain}"`
+      )
+    }
+
     const fakeDomainPatterns = ["support", "help", "service", "noreply", "security", "alert", "verify"]
     const fakePrefix = fakeDomainPatterns.find(p => emailPrefix.includes(p))
     if (fakePrefix) {

@@ -78,9 +78,25 @@ function LogSentry() {
         </div>
 
         {loading && (
-          <div className="mt-6 flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-blue-400 animate-ping" />
-            <p className="text-blue-300 animate-pulse">Monitoring Logs...</p>
+          <div
+            className="mt-6 rounded-2xl p-6 animate-pulse"
+            style={{
+              background: "rgba(0,100,255,0.06)",
+              border: "1px solid rgba(0,150,255,0.25)"
+            }}
+          >
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-3 h-3 rounded-full bg-cyan-400 animate-ping" />
+              <p className="text-cyan-300 font-semibold tracking-wide">
+                Analyzing Security Logs...
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="h-16 bg-gray-800 rounded-xl"></div>
+              <div className="h-16 bg-gray-800 rounded-xl"></div>
+              <div className="h-16 bg-gray-800 rounded-xl"></div>
+            </div>
           </div>
         )}
 

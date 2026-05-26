@@ -88,42 +88,34 @@ router.post("/register", async (req, res) => {
 })
 
 // LOGIN
-router.post("/login", (req, res) => {
+router.post("/login", async (req, res) => { // Added 'async' here
 
   const { email, password } = req.body
 
   const sql = "SELECT * FROM users WHERE email = ?"
 
-  db.query(sql, [email], async (err, result) => {
+  try {
+    // Modern PostgreSQL query style (No callbacks!)
+    const result = await db.query(sql, [email])
 
-    if (err) {
-      console.error("Database Query Error:", err) 
-      return res.status(500).json("Database Error")
-    }
-
-    // CHECK 1: Ensure result.rows exists and contains at least one item
-    if (!result || !result.rows || result.rows.length === 0) {
+    if (!result.rows || result.rows.length === 0) {
       return res.status(404).json("User Not Found")
     }
 
-    // FIXED: Extract the single row object at index 0 from the rows array
-    const user = result.rows[0]
+    const user = result.rows[0] // Correctly grabs the single user object
 
-    try {
-      // Now user.password points directly to your encrypted string string
-      const isMatch = await bcrypt.compare(password, user.password)
+    const isMatch = await bcrypt.compare(password, user.password)
 
-      if (!isMatch) {
-        return res.status(401).json("Invalid Credentials")
-      }
-
-      return res.json("Login Successful")
-
-    } catch (bcryptError) {
-      console.error("Bcrypt Verification Failure:", bcryptError)
-      return res.status(500).json("Server Processing Error")
+    if (!isMatch) {
+      return res.status(401).json("Invalid Credentials")
     }
-  })
+
+    return res.json("Login Successful")
+
+  } catch (err) {
+    console.error(err) // This prints the exact error in your Render logs
+    return res.status(500).json("Database Error")
+  }
 })
 
 export default router

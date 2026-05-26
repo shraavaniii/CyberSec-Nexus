@@ -1,0 +1,1 @@
+postgresql://cybersec_nexus_user:nX94WPyZAgHEDHUiPN9jCzLE9WRvK3ps@dpg-d8at4glckfvc73di17m0-a/cybersec_nexus

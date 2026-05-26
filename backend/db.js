@@ -1,6 +1,6 @@
-import mysql from "mysql2"
+import mysql from "mysql2/promise"
 
-const db = mysql.createConnection({
+const db = await mysql.createConnection({
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
   user: process.env.DB_USER,
@@ -8,15 +8,10 @@ const db = mysql.createConnection({
   database: process.env.DB_NAME,
   ssl: {
     rejectUnauthorized: false
-  }
+  },
+  connectTimeout: 10000
 })
 
-db.connect((err) => {
-  if (err) {
-    console.log("Database Error:", err)
-  } else {
-    console.log("MySQL Connected")
-  }
-})
+console.log("MySQL Connected")
 
 export default db

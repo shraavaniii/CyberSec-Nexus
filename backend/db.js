@@ -1,23 +1,16 @@
-import mysql from "mysql2/promise"
+import pkg from "pg"
 
-let db
+const { Pool } = pkg
 
-try {
-  db = await mysql.createConnection({
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    ssl: {
-      rejectUnauthorized: false
-    },
-    connectTimeout: 10000
-  })
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
+})
 
-  console.log("MySQL Connected")
-} catch (err) {
-  console.log("Database Error:", err)
-}
+pool.connect()
+  .then(() => console.log("PostgreSQL Connected"))
+  .catch((err) => console.log("Database Error:", err))
 
-export default db
+export default pool

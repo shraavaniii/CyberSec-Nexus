@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import axios from "axios"
 
 function SecureReports() {
+
   const [reports, setReports] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -9,21 +10,28 @@ function SecureReports() {
   const [title, setTitle] = useState("")
   const [uploading, setUploading] = useState(false)
 
-  // YOUR BACKEND URL
-  const API_URL = "https://cybersec-nexus-backend.onrender.com/api/reports"
+  // BACKEND API
+  const API_URL =
+    "https://cybersec-nexus-backend.onrender.com/api/reports"
 
   // FETCH REPORTS
   const fetchReports = async () => {
     try {
+
       setLoading(true)
 
       const res = await axios.get(API_URL)
 
       setReports(res.data)
+
     } catch (err) {
-      console.error("Error fetching reports:", err)
+
+      console.error("Fetch Reports Error:", err)
+
     } finally {
+
       setLoading(false)
+
     }
   }
 
@@ -31,27 +39,31 @@ function SecureReports() {
     fetchReports()
   }, [])
 
-  // FILE SELECT
+  // FILE CHANGE
   const handleFileChange = (e) => {
+
     const selectedFile = e.target.files[0]
 
     if (!selectedFile) return
 
-    // ALLOWED FILE TYPES
+    // ALLOWED TYPES
     const allowedTypes = [
       "application/pdf",
       "image/png",
       "image/jpeg",
-      "image/jpg"
+      "image/jpg",
+      "text/plain"
     ]
 
     if (!allowedTypes.includes(selectedFile.type)) {
-      alert("Only PDF, PNG, JPG, JPEG files are allowed.")
+
+      alert("Only PDF, TXT, PNG, JPG files allowed.")
       return
     }
 
-    // MAX SIZE = 10MB
+    // MAX SIZE 10MB
     if (selectedFile.size > 10 * 1024 * 1024) {
+
       alert("File size must be under 10MB.")
       return
     }
@@ -59,29 +71,35 @@ function SecureReports() {
     setFile(selectedFile)
   }
 
-  // UPLOAD REPORT
+  // UPLOAD
   const handleUploadSubmit = async (e) => {
+
     e.preventDefault()
 
     if (!title || !file) {
-      return alert("Please enter title and select a file.")
+
+      alert("Please enter title and select file.")
+      return
     }
 
     try {
+
       setUploading(true)
 
       const formData = new FormData()
 
       formData.append("title", title)
-
-      // IMPORTANT FIX
       formData.append("file", file)
 
-      const response = await axios.post(API_URL, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data"
+      const response = await axios.post(
+        API_URL,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
         }
-      })
+      )
 
       console.log(response.data)
 
@@ -96,29 +114,47 @@ function SecureReports() {
       fetchReports()
 
     } catch (error) {
+
       console.error("UPLOAD ERROR:", error)
 
       if (error.response) {
+
         alert(error.response.data.message || "Upload failed.")
+
       } else {
+
         alert("Server connection failed.")
       }
 
     } finally {
+
       setUploading(false)
     }
   }
 
-  // DOWNLOAD FILE
-  const handleSecureDownload = (fileUrl) => {
-    if (!fileUrl) {
-      return alert("Invalid file URL")
-    }
+  // DOWNLOAD
+  const handleSecureDownload = async (fileUrl) => {
 
-    window.open(fileUrl, "_blank")
+    try {
+
+      if (!fileUrl) {
+        alert("Invalid file URL")
+        return
+      }
+
+      // OPEN CLOUDINARY FILE DIRECTLY
+      window.open(fileUrl, "_blank")
+
+    } catch (error) {
+
+      console.error("Download Error:", error)
+
+      alert("Download failed.")
+    }
   }
 
   return (
+
     <div className="p-6">
 
       <h1 className="text-4xl text-green-500 font-bold mb-2">
@@ -171,7 +207,7 @@ function SecureReports() {
             <input
               id="fileInput"
               type="file"
-              accept=".pdf,.png,.jpg,.jpeg"
+              accept=".pdf,.png,.jpg,.jpeg,.txt"
               onChange={handleFileChange}
               className="bg-black border border-gray-700 text-gray-400 p-1.5 rounded focus:border-green-500 outline-none text-sm file:bg-gray-800 file:text-green-400 file:border-0 file:px-3 file:py-1 file:rounded file:mr-2 file:cursor-pointer hover:file:bg-gray-700"
             />
@@ -219,7 +255,9 @@ function SecureReports() {
             <table className="w-full text-left border-collapse">
 
               <thead>
+
                 <tr className="border-b border-green-500">
+
                   <th className="py-3 pr-4 text-green-400 font-mono">
                     NODE
                   </th>
@@ -231,7 +269,9 @@ function SecureReports() {
                   <th className="py-3 text-green-400 font-mono text-right">
                     ACTION
                   </th>
+
                 </tr>
+
               </thead>
 
               <tbody>

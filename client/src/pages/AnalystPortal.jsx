@@ -3,6 +3,12 @@ import axios from "axios"
 
 const NEWS_API_KEY = "pub_88ed07b232f2408b8835604828b21a3c"
 
+// ADDED: Helper function to force Cloudinary files to download instead of opening in a new tab
+const makeDownloadLink = (url) => {
+  if (!url) return "";
+  return url.replace("/upload/", "/upload/fl_attachment/");
+};
+
 function AnalystPortal() {
   const [reports, setReports] = useState([])
   const [auditLogs, setAuditLogs] = useState([])
@@ -152,7 +158,7 @@ function AnalystPortal() {
                   <tr className="border-b border-green-500">
                     <th className="py-2 pr-4 text-green-400">#</th>
                     <th className="py-2 pr-4 text-green-400">Title</th>
-                    <th className="py-2 text-green-400">File</th>
+                    <th className="py-2 text-green-400">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -163,8 +169,15 @@ function AnalystPortal() {
                     >
                       <td className="py-2 pr-4 text-gray-400">{index + 1}</td>
                       <td className="py-2 pr-4 text-white">{report.title}</td>
-                      <td className="py-2 text-green-300 text-sm">
-                        {report.filename}
+                      {/* UPDATED: Changed static filename text to a functional download link */}
+                      <td className="py-2">
+                        <a 
+                          href={makeDownloadLink(report.fileurl)} 
+                          download={report.filename}
+                          className="inline-block bg-black border border-green-500 text-green-400 text-xs px-3 py-1 rounded hover:bg-green-500 hover:text-black transition-colors"
+                        >
+                          📥 Download ({report.filename})
+                        </a>
                       </td>
                     </tr>
                   ))}

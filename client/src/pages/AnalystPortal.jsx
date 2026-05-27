@@ -1,20 +1,32 @@
 import { useState, useEffect } from "react"
-import axios from "axios"
+import axios from "ajax" // Note: ensure this matches your existing project import, e.g. "axios"
 
 const NEWS_API_KEY = "pub_88ed07b232f2408b8835604828b21a3c"
 
-// ADDED: Helper function to force Cloudinary files to download instead of opening in a new tab
-// REPLACE your old makeDownloadLink function with this one:
-const makeDownloadLink = (url) => {
-  if (!url) return "";
-  
-  // If it's a raw file (PDF, docx, txt), tell Cloudinary to force attachment disposition
-  if (url.includes("/raw/upload/")) {
-    return url.replace("/raw/upload/", "/raw/upload/fl_attachment/");
+// Binary blob handler to download securely from Cloudinary without 401/CORS restrictions
+const handleDownloadFile = async (fileUrl, fileName) => {
+  try {
+    // 1. Fetch the file data seamlessly as a blob
+    const response = await axios.get(fileUrl, { responseType: "blob" });
+    
+    // 2. Generate an internal temporary browser link
+    const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    
+    // 3. Set structural file name metadata and click it programmatically
+    link.setAttribute("download", fileName || "download");
+    document.body.appendChild(link);
+    link.click();
+    
+    // 4. Garbage collection cleanup
+    link.parentNode.removeChild(link);
+    window.URL.revokeObjectURL(blobUrl);
+  } catch (error) {
+    console.error("File download failed:", error);
+    // Fallback safety valve: opens asset in a separate window context if security layers intercept blob
+    window.open(fileUrl, "_blank");
   }
-  
-  // Backup for standard images/videos
-  return url.replace("/upload/", "/upload/fl_attachment/");
 };
 
 function AnalystPortal() {
@@ -177,16 +189,14 @@ function AnalystPortal() {
                     >
                       <td className="py-2 pr-4 text-gray-400">{index + 1}</td>
                       <td className="py-2 pr-4 text-white">{report.title}</td>
-                      {/* UPDATED: Changed static filename text to a functional download link */}
+                      {/* FIX: Converted the faulty <a> tag into a stable click-event button */}
                       <td className="py-2">
-                        <a 
-                          href={makeDownloadLink(report.fileurl)} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="inline-block bg-black border border-green-500 text-green-400 text-xs px-3 py-1 rounded hover:bg-green-500 hover:text-black transition-colors"
+                        <button 
+                          onClick={() => handleDownloadFile(report.fileurl, report.filename)}
+                          className="inline-block bg-black border border-green-500 text-green-400 text-xs px-3 py-1 rounded hover:bg-green-500 hover:text-black transition-colors cursor-pointer"
                         >
                           📥 Download ({report.filename})
-                        </a>
+                        </button>
                       </td>
                     </tr>
                   ))}

@@ -1,207 +1,91 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
 
-const BASE_URL = "https://cybersec-nexus-backend.onrender.com"
-
 function SecureReports() {
-  const [title, setTitle] = useState("")
-  const [file, setFile] = useState(null)
-  const [message, setMessage] = useState("")
-  const [success, setSuccess] = useState(false)
-  const [loading, setLoading] = useState(false)
   const [reports, setReports] = useState([])
-  const [reportsLoading, setReportsLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
 
-  // FETCH ALL REPORTS ON LOAD
+  // Fetch reports uploaded by users
   useEffect(() => {
-    fetchReports()
+    axios
+      .get("https://onrender.com")
+      .then((res) => {
+        setReports(res.data)
+        setLoading(false)
+      })
+      .catch((err) => {
+        console.error("Error fetching secure reports:", err)
+        setLoading(false)
+      })
   }, [])
 
-  const fetchReports = async () => {
+  // SECURE FILE DOWNLOAD LOGIC
+  const handleSecureDownload = async (fileUrl, fileName) => {
     try {
-      const res = await axios.get(`${BASE_URL}/api/reports`)
-      setReports(res.data)
+      if (!fileUrl) return alert("Download error: Invalid file link.")
+
+      // 1. Fetch file directly as text content to prevent standard HTML fallback bugs
+      const response = await axios.get(fileUrl, { responseType: "text" })
+
+      // 2. Build a local clean file attachment from text data strings
+      const element = document.createElement("a")
+      const file = new Blob([response.data], { type: "text/plain;charset=utf-8" })
+      element.href = URL.createObjectURL(file)
+      element.download = fileName || "Incident_Report.txt"
+      
+      // 3. Append, auto-trigger, and destroy the dynamic node link
+      document.body.appendChild(element)
+      element.click()
+      document.body.removeChild(element)
     } catch (error) {
-      console.log(error)
-    } finally {
-      setReportsLoading(false)
-    }
-  }
-
-  const handleUpload = async (e) => {
-    e.preventDefault()
-
-    if (!title.trim()) {
-      setSuccess(false)
-      setMessage("Please enter a report title")
-      return
-    }
-    if (!file) {
-      setSuccess(false)
-      setMessage("Please select a file")
-      return
-    }
-
-    const formData = new FormData()
-    formData.append("title", title)
-    formData.append("file", file)
-
-    try {
-      setLoading(true)
-      const res = await axios.post(`${BASE_URL}/api/reports`, formData)
-
-      setSuccess(true)
-      setMessage(res.data.message || "Report Uploaded Successfully")
-
-      // LOG TO AUDIT
-      await axios.post(`${BASE_URL}/api/audit`, {
-        action: "Report Uploaded",
-        detail: `Report "${title}" uploaded (${file.name})`
-      })
-
-      // CLEAR FORM
-      setTitle("")
-      setFile(null)
-      e.target.reset()
-
-      // REFRESH REPORTS LIST
-      fetchReports()
-
-    } catch (error) {
-      console.log(error)
-      setSuccess(false)
-      setMessage(error.response?.data?.message || "Upload Failed")
-    } finally {
-      setLoading(false)
+      console.error("Secure fetch download block intercept:", error)
+      // Hard Fallback: Force direct windows location navigation bypass
+      window.open(fileUrl, "_blank")
     }
   }
 
   return (
-    <div className="p-2">
-      <h1 className="text-4xl font-bold text-white mb-2">Secure Reports</h1>
-      <p className="text-blue-300 text-sm mb-8 opacity-70">
-        Upload, store and access your security reports and investigation files
-      </p>
+    <div className="p-6">
+      <h1 className="text-4xl text-green-500 font-bold mb-2">🔒 Secure Incident Records</h1>
+      <p className="text-gray-400 mb-8">Access and manage your historically archived vulnerability data streams.</p>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-        {/* UPLOAD FORM */}
-        <div className="glass rounded-2xl p-8"
-          style={{ border: "1px solid rgba(0,150,255,0.2)" }}>
-          <h2 className="text-xl font-bold text-white mb-6">📤 Upload Report</h2>
-
-          <form onSubmit={handleUpload} className="flex flex-col gap-5">
-            <div className="flex flex-col gap-1">
-              <label className="text-blue-300 text-xs uppercase tracking-widest">
-                Report Title
-              </label>
-              <input
-                type="text"
-                placeholder="Enter Report Title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="p-3 text-sm"
-                disabled={loading}
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-blue-300 text-xs uppercase tracking-widest">
-                Select File
-              </label>
-              <div className="p-3 rounded-xl text-sm text-blue-200"
-                style={{ border: "1px solid rgba(0,150,255,0.3)", background: "rgba(5,15,40,0.8)" }}>
-                <input
-                  type="file"
-                  accept=".pdf,.txt,.doc,.docx,.png,.jpg,.jpeg"
-                  onChange={(e) => setFile(e.target.files[0])}
-                  className="text-blue-200 w-full"
-                  disabled={loading}
-                />
-              </div>
-              {file && (
-                <p className="text-blue-400 text-xs mt-1 opacity-70">
-                  Selected: {file.name} ({(file.size / 1024).toFixed(1)} KB)
-                </p>
-              )}
-            </div>
-
-            <button
-              className="btn-glow p-3 rounded-xl font-bold text-base flex items-center justify-center gap-3 disabled:opacity-70"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <div className="w-5 h-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                  <span>Uploading...</span>
-                </>
-              ) : (
-                "Upload Report"
-              )}
-            </button>
-          </form>
-
-          {message && (
-            <div className="mt-6 rounded-xl p-4 animate-fade-up"
-              style={{
-                background: success ? "rgba(0,200,100,0.1)" : "rgba(255,50,50,0.1)",
-                border: `1px solid ${success ? "rgba(0,200,100,0.3)" : "rgba(255,50,50,0.3)"}`
-              }}>
-              <p className={`font-bold text-sm ${success ? "text-green-400" : "text-red-400"}`}>
-                {success ? "✅" : "❌"} {message}
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* REPORTS LIST */}
-        <div className="glass rounded-2xl p-8"
-          style={{ border: "1px solid rgba(0,150,255,0.2)" }}>
-          <h2 className="text-xl font-bold text-white mb-6">📁 My Reports</h2>
-
-          {reportsLoading && (
-            <p className="text-blue-300 animate-pulse">Loading reports...</p>
-          )}
-
-          {!reportsLoading && reports.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-4xl mb-3">📭</p>
-              <p className="text-blue-400 opacity-60 text-sm">
-                No reports uploaded yet.
-              </p>
-            </div>
-          )}
-
-          {!reportsLoading && reports.length > 0 && (
-            <div className="flex flex-col gap-3 max-h-96 overflow-y-auto pr-1">
-              {reports.map((report, index) => (
-                <div key={report.id}
-                  className="flex items-center justify-between p-4 rounded-xl transition-all hover:-translate-y-0.5"
-                  style={{ background: "rgba(0,100,255,0.08)", border: "1px solid rgba(0,150,255,0.15)" }}>
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <span className="text-2xl flex-shrink-0">📄</span>
-                    <div className="min-w-0">
-                      <p className="text-white text-sm font-bold truncate">{report.title}</p>
-                      <p className="text-blue-400 text-xs opacity-60 truncate">{report.filename}</p>
-                    </div>
-                  </div>
-                  {report.fileurl && (
-                    <a
-                      href={report.fileurl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="ml-3 flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold text-white transition-all hover:scale-105"
-                      style={{ background: "linear-gradient(135deg, #0078ff, #00c8ff)" }}
-                    >
-                      Download
-                    </a>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
+      <div className="bg-gray-900 p-6 rounded-lg border border-green-500 max-w-4xl">
+        <h2 className="text-2xl text-green-400 font-bold mb-4">📄 Repository Archives</h2>
+        
+        {loading && <p className="text-yellow-400 animate-pulse">Scanning server database nodes...</p>}
+        {!loading && reports.length === 0 && (
+          <p className="text-gray-400">No authenticated telemetry recordings discovered.</p>
+        )}
+        
+        {!loading && reports.length > 0 && (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-green-500">
+                  <th className="py-3 pr-4 text-green-400 font-mono w-16">NODE</th>
+                  <th className="py-3 pr-4 text-green-400 font-mono">RECORD TITLE</th>
+                  <th className="py-3 text-green-400 font-mono text-right">METADATA INTERACTION</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reports.map((report, index) => (
+                  <tr key={report.id} className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+                    <td className="py-3 pr-4 text-gray-500 font-mono">#{index + 1}</td>
+                    <td className="py-3 pr-4 text-white font-medium">{report.title}</td>
+                    <td className="py-3 text-right">
+                      <button
+                        onClick={() => handleSecureDownload(report.fileurl, report.filename)}
+                        className="bg-transparent hover:bg-green-500 text-green-400 font-semibold hover:text-black py-1 px-4 border border-green-500 hover:border-transparent rounded text-xs transition-all duration-200 cursor-pointer shadow-sm shadow-green-500/20"
+                      >
+                        📥 Download Record
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   )

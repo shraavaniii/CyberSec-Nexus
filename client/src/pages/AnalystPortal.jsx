@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import axios from "ajax" // Note: ensure this matches your existing project import, e.g. "axios"
+import axios from "axios" // Note: ensure this matches your existing project import, e.g. "axios"
 
 const NEWS_API_KEY = "pub_88ed07b232f2408b8835604828b21a3c"
 

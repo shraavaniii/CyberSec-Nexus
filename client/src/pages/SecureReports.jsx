@@ -4,9 +4,15 @@ import axios from "axios"
 function SecureReports() {
   const [reports, setReports] = useState([])
   const [loading, setLoading] = useState(true)
+  
+  // New states for handling uploads
+  const [file, setFile] = useState(null)
+  const [title, setTitle] = useState("")
+  const [uploading, setUploading] = useState(false)
 
-  // Fetch reports uploaded by users
-  useEffect(() => {
+  // 1. FETCH HISTORICAL REPORTS ON MOUNT
+  const fetchReports = () => {
+    setLoading(true)
     axios
       .get("https://onrender.com")
       .then((res) => {
@@ -17,29 +23,60 @@ function SecureReports() {
         console.error("Error fetching secure reports:", err)
         setLoading(false)
       })
+  }
+
+  useEffect(() => {
+    fetchReports()
   }, [])
 
-  // SECURE FILE DOWNLOAD LOGIC
+  // 2. FILE UPLOAD LOGIC HANDLER
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0])
+  }
+
+  const handleUploadSubmit = async (e) => {
+    e.preventDefault()
+    if (!file || !title) return alert("Please provide a report title and select a file.")
+
+    setUploading(true)
+    const formData = new FormData()
+    formData.append("title", title)
+    formData.append("file", file)
+
+    try {
+      await axios.post("https://onrender.com", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      })
+      alert("Report uploaded successfully to SecureVault!")
+      setTitle("")
+      setFile(null)
+      // Reset the file input element visually
+      document.getElementById("fileInput").value = ""
+      fetchReports() // Refresh list automatically
+    } catch (error) {
+      console.error("Upload failed:", error)
+      alert("Upload failed. Check your file extension or size constraints.")
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  // 3. SECURE FILE DOWNLOAD LOGIC HANDLER
   const handleSecureDownload = async (fileUrl, fileName) => {
     try {
       if (!fileUrl) return alert("Download error: Invalid file link.")
-
-      // 1. Fetch file directly as text content to prevent standard HTML fallback bugs
       const response = await axios.get(fileUrl, { responseType: "text" })
-
-      // 2. Build a local clean file attachment from text data strings
+      
       const element = document.createElement("a")
-      const file = new Blob([response.data], { type: "text/plain;charset=utf-8" })
-      element.href = URL.createObjectURL(file)
+      const blobFile = new Blob([response.data], { type: "text/plain;charset=utf-8" })
+      element.href = URL.createObjectURL(blobFile)
       element.download = fileName || "Incident_Report.txt"
       
-      // 3. Append, auto-trigger, and destroy the dynamic node link
       document.body.appendChild(element)
       element.click()
       document.body.removeChild(element)
     } catch (error) {
       console.error("Secure fetch download block intercept:", error)
-      // Hard Fallback: Force direct windows location navigation bypass
       window.open(fileUrl, "_blank")
     }
   }
@@ -47,8 +84,42 @@ function SecureReports() {
   return (
     <div className="p-6">
       <h1 className="text-4xl text-green-500 font-bold mb-2">🔒 Secure Incident Records</h1>
-      <p className="text-gray-400 mb-8">Access and manage your historically archived vulnerability data streams.</p>
+      <p className="text-gray-400 mb-8">Access, upload, and manage your historically archived vulnerability data streams.</p>
 
+      {/* FIXED MODULE: Added back the Browse and Upload form layout section */}
+      <div className="bg-gray-900 p-6 rounded-lg border border-green-500 max-w-4xl mb-8">
+        <h2 className="text-2xl text-green-400 font-bold mb-4">📤 Upload New Incident Telemetry</h2>
+        <form onSubmit={handleUploadSubmit} className="flex flex-col md:flex-row gap-4 items-end">
+          <div className="flex flex-col flex-1 gap-2 w-full">
+            <label className="text-gray-400 text-sm">Report Title</label>
+            <input 
+              type="text" 
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g., XSS Attack Log" 
+              className="bg-black border border-gray-700 text-white p-2 rounded focus:border-green-500 outline-none text-sm"
+            />
+          </div>
+          <div className="flex flex-col flex-1 gap-2 w-full">
+            <label className="text-gray-400 text-sm">Select Document File</label>
+            <input 
+              id="fileInput"
+              type="file" 
+              onChange={handleFileChange}
+              className="bg-black border border-gray-700 text-gray-400 p-1.5 rounded focus:border-green-500 outline-none text-sm file:bg-gray-800 file:text-green-400 file:border-0 file:px-3 file:py-1 file:rounded file:mr-2 file:cursor-pointer hover:file:bg-gray-700"
+            />
+          </div>
+          <button 
+            type="submit"
+            disabled={uploading}
+            className="w-full md:w-auto bg-green-500 hover:bg-green-600 text-black font-bold py-2 px-6 rounded text-sm transition-all cursor-pointer disabled:bg-gray-700 disabled:text-gray-500"
+          >
+            {uploading ? "Uploading..." : "Upload Report"}
+          </button>
+        </form>
+      </div>
+
+      {/* REPOSITORY ARCHIVES LIST MODULE */}
       <div className="bg-gray-900 p-6 rounded-lg border border-green-500 max-w-4xl">
         <h2 className="text-2xl text-green-400 font-bold mb-4">📄 Repository Archives</h2>
         

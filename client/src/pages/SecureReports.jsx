@@ -30,9 +30,13 @@ function SecureReports() {
   }, [])
 
   // 2. FILE UPLOAD LOGIC HANDLER
+  // UPDATE this function to grab the first index element explicitly
   const handleFileChange = (e) => {
-    setFile(e.target.files[0])
-  }
+    if (e.target.files && e.target.files.length > 0) {
+      setFile(e.target.files[0]); // 🟢 FIXED: Added [0] to select the actual PDF file binary
+    }
+  };
+
 
   const handleUploadSubmit = async (e) => {
     e.preventDefault()

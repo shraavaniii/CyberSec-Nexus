@@ -16,8 +16,7 @@ function Sidebar({ onClose }) {
     { to: "/analyst-portal", label: "Analyst Portal", icon: "🖥️", protected: true },
   ]
 
-  // Show all links to logged in users (including analyst portal)
-  // Hide protected links from guests
+  // Show protected links only to logged-in users
   const visibleLinks = links.filter(link => {
     if (link.protected) return isLoggedIn
     return true
@@ -52,7 +51,7 @@ function Sidebar({ onClose }) {
       <div className="flex flex-col gap-1 p-3 flex-1">
         {visibleLinks.map((link) => {
           const isActive = location.pathname === link.to
-          const isAdminOnly = link.to === "/analyst-portal" && role !== "admin" && isLoggedIn
+          
           return (
             <Link
               key={link.to}
@@ -73,13 +72,8 @@ function Sidebar({ onClose }) {
               </span>
               <span className="text-sm">{link.label}</span>
               
-              {/* LOCK ICON FOR NON-ADMIN ANALYST PORTAL */}
-              {isAdminOnly && (
-                <span className="ml-auto text-xs text-yellow-500" title="Admin only - limited access">🔒</span>
-              )}
-              
-              {/* FIXED ACTIVE INDICATOR */}
-              {isActive && !isAdminOnly && (
+              {/* ACTIVE RUNNING INDICATOR (Visible to all authorized roles) */}
+              {isActive && (
                 <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400" />
               )}
             </Link>

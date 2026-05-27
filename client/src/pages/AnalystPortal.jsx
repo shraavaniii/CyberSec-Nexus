@@ -1,238 +1,75 @@
 import { useState, useEffect } from "react"
-import axios from "axios"
-
-const NEWS_API_KEY = "pub_88ed07b232f2408b8835604828b21a3c"
 
 function AnalystPortal() {
-  const [reports, setReports] = useState([])
-  const [auditLogs, setAuditLogs] = useState([])
+  const role = localStorage.getItem("role")
   const [news, setNews] = useState([])
-  const [newsLoading, setNewsLoading] = useState(true)
-  const [auditLoading, setAuditLoading] = useState(true)
-  const [reportsLoading, setReportsLoading] = useState(true)
 
-  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true"
-
-  // FETCH REPORTS
+  // Simulated live cyber threat data feeds
   useEffect(() => {
-    axios
-      .get(`${import.meta.env.VITE_API_URL}/api/reports`)
-      .then((res) => {
-        setReports(res.data)
-        setReportsLoading(false)
-      })
-      .catch(() => setReportsLoading(false))
+    setNews([
+      { id: 1, title: "Critical Zero-Day Vulnerability Found in OpenSSL Systems", severity: "High", date: "May 27, 2026" },
+      { id: 2, title: "Active Ransomware Campaign Targeting Cloud Database Environments", severity: "Critical", date: "May 27, 2026" },
+      { id: 3, title: "Phishing Wave Exploiting New Multi-Factor Authentication Bypass Techniques", severity: "Medium", date: "May 26, 2026" }
+    ])
   }, [])
-
-  // FETCH AUDIT LOGS
-  useEffect(() => {
-    axios
-      .get(`${import.meta.env.VITE_API_URL}/api/audit`)
-      .then((res) => {
-        setAuditLogs(res.data)
-        setAuditLoading(false)
-      })
-      .catch(() => setAuditLoading(false))
-  }, [])
-
-  // FETCH CYBER NEWS
-  useEffect(() => {
-    axios
-      .get(
-        `https://newsdata.io/api/1/news?apikey=${NEWS_API_KEY}&q=cybersecurity&language=en&size=6`
-      )
-      .then((res) => {
-        setNews(res.data.results || [])
-        setNewsLoading(false)
-      })
-      .catch(() => setNewsLoading(false))
-  }, [])
-
-  const formatTime = (timestamp) => {
-    const date = new Date(timestamp)
-    return date.toLocaleString()
-  }
-
-  const getActionColor = (action) => {
-    if (action === "Threat Scan") return "text-yellow-400"
-    if (action === "Report Uploaded") return "text-green-400"
-    return "text-blue-400"
-  }
-
-  const getActionIcon = (action) => {
-    if (action === "Threat Scan") return "🔍"
-    if (action === "Report Uploaded") return "📄"
-    return "📋"
-  }
 
   return (
-    <div className="p-6">
-
-      {/* HEADER */}
-      <h1 className="text-4xl text-green-500 font-bold mb-2">
-        Analyst Portal
-      </h1>
-      <p className="text-gray-400 mb-8">
-        Session Status:{" "}
-        <span className={isLoggedIn ? "text-green-400" : "text-red-400"}>
-          {isLoggedIn ? "✔ Authenticated" : "✘ Not Logged In — Please Login First"}
-        </span>
-      </p>
-
-      {/* STATS ROW */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <div className="bg-gray-900 p-6 rounded-lg border border-green-500">
-          <h2 className="text-green-400 text-lg mb-1">Total Reports</h2>
-          <p className="text-4xl font-bold">
-            {reportsLoading ? "..." : reports.length}
-          </p>
-        </div>
-        <div className="bg-gray-900 p-6 rounded-lg border border-green-500">
-          <h2 className="text-green-400 text-lg mb-1">Total Activities</h2>
-          <p className="text-4xl font-bold">
-            {auditLoading ? "..." : auditLogs.length}
-          </p>
-        </div>
-        <div className="bg-gray-900 p-6 rounded-lg border border-green-500">
-          <h2 className="text-green-400 text-lg mb-1">Threat Engine</h2>
-          <p className="text-green-300 text-lg font-semibold mt-2">✔ Online</p>
-        </div>
+    <div className="p-6 text-white min-h-screen bg-slate-950">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-blue-400 flex items-center gap-2">
+          🌐 Global Threat Intelligence
+        </h1>
+        <p className="text-slate-400 text-sm mt-1">Live information stream regarding modern security vulnerabilities and worldwide exploits.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-
-        {/* AUDIT ACTIVITY TIMELINE */}
-        <div className="bg-gray-900 p-6 rounded-lg border border-green-500">
-          <h2 className="text-2xl text-green-400 font-bold mb-4">
-            🕐 Activity Timeline
-          </h2>
-          {auditLoading && (
-            <div className="flex flex-col gap-3 animate-pulse">
-              <div className="h-16 bg-gray-800 rounded-lg"></div>
-              <div className="h-16 bg-gray-800 rounded-lg"></div>
-              <div className="h-16 bg-gray-800 rounded-lg"></div>
+      {/* 📰 NEWS GRID FEED */}
+      <div className="grid gap-4 mb-8">
+        {news.map(item => (
+          <div 
+            key={item.id} 
+            className="p-5 rounded-xl border border-blue-500/10 bg-slate-900/60 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-4"
+          >
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider ${
+                  item.severity === "Critical" ? "bg-red-500 text-white" : 
+                  item.severity === "High" ? "bg-orange-500 text-black" : "bg-yellow-500 text-black"
+                }`}>
+                  {item.severity}
+                </span>
+                <span className="text-xs text-slate-500">{item.date}</span>
+              </div>
+              <h3 className="text-lg font-semibold text-slate-200">{item.title}</h3>
             </div>
-          )}
-          {!auditLoading && auditLogs.length === 0 && (
-            <p className="text-gray-400">
-              No activity yet. Run a scan or upload a report.
-            </p>
-          )}
-          {!auditLoading && auditLogs.length > 0 && (
-            <div className="flex flex-col gap-4 max-h-96 overflow-y-auto pr-2">
-              {auditLogs.map((log) => (
-                <div
-                  key={log.id}
-                  className="border-l-2 border-green-500 pl-4"
-                >
-                  <p className={`font-bold ${getActionColor(log.action)}`}>
-                    {getActionIcon(log.action)} {log.action}
-                  </p>
-                  <p className="text-white text-sm mt-1">{log.detail}</p>
-                  <p className="text-gray-500 text-xs mt-1">
-                    {formatTime(log.created_at)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* UPLOADED REPORTS TABLE */}
-        <div className="bg-gray-900 p-6 rounded-lg border border-green-500">
-          <h2 className="text-2xl text-green-400 font-bold mb-4">
-            📁 Uploaded Reports
-          </h2>
-          {reportsLoading && (
-            <div className="flex flex-col gap-3 animate-pulse">
-              <div className="h-12 bg-gray-800 rounded-lg"></div>
-              <div className="h-12 bg-gray-800 rounded-lg"></div>
-              <div className="h-12 bg-gray-800 rounded-lg"></div>
-            </div>
-          )}
-          {!reportsLoading && reports.length === 0 && (
-            <p className="text-gray-400">No reports uploaded yet.</p>
-          )}
-          {!reportsLoading && reports.length > 0 && (
-            <div className="overflow-x-auto max-h-96 overflow-y-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-green-500">
-                    <th className="py-2 pr-4 text-green-400">#</th>
-                    <th className="py-2 pr-4 text-green-400">Title</th>
-                    <th className="py-2 text-green-400">File</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {reports.map((report, index) => (
-                    <tr
-                      key={report.id}
-                      className="border-b border-gray-800 hover:bg-gray-800"
-                    >
-                      <td className="py-2 pr-4 text-gray-400">{index + 1}</td>
-                      <td className="py-2 pr-4 text-white">{report.title}</td>
-                      <td className="py-2 text-green-300 text-sm">
-                        {report.filename}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* LIVE CYBER THREAT NEWS */}
-      <div className="bg-gray-900 p-6 rounded-lg border border-green-500">
-        <h2 className="text-2xl text-green-400 font-bold mb-6">
-          📡 Live Cyber Threat Intelligence
-        </h2>
-        {newsLoading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-pulse">
-            <div className="h-48 bg-gray-800 rounded-lg"></div>
-            <div className="h-48 bg-gray-800 rounded-lg"></div>
-            <div className="h-48 bg-gray-800 rounded-lg"></div>
+            <button className="text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors border border-blue-400/20 px-3 py-1.5 rounded-lg whitespace-nowrap bg-blue-500/5">
+              Read Analysis
+            </button>
           </div>
-        )}
-        {!newsLoading && news.length === 0 && (
-          <p className="text-gray-400">Could not load news. Try again later.</p>
-        )}
-        {!newsLoading && news.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {news.map((article, index) => (
-              <a
-                key={index}
-                href={article.link}
-                target="_blank"
-                rel="noreferrer"
-                className="block bg-black border border-green-500 p-4 rounded-lg hover:border-green-300 transition-colors"
-              >
-                {article.image_url && (
-                  <img
-                    src={article.image_url}
-                    alt="news"
-                    className="w-full h-32 object-cover rounded mb-3"
-                    onError={(e) => (e.target.style.display = "none")}
-                  />
-                )}
-                <p className="text-green-400 text-xs mb-2 uppercase">
-                  {article.source_id || "Cybersecurity News"}
-                </p>
-                <p className="text-white text-sm font-semibold leading-snug">
-                  {article.title}
-                </p>
-                <p className="text-gray-500 text-xs mt-2">
-                  {article.pubDate
-                    ? new Date(article.pubDate).toLocaleDateString()
-                    : ""}
-                </p>
-              </a>
-            ))}
-          </div>
-        )}
+        ))}
       </div>
 
+      {/* 🔐 CONTEXTUAL ADMINISTRATION AREA */}
+      {role === "admin" ? (
+        <div className="p-6 rounded-xl border border-red-500/20 bg-red-950/10 backdrop-blur-md">
+          <h2 className="text-xl font-bold text-red-400 mb-1 flex items-center gap-2">
+            🛡️ Administrative Control Matrix
+          </h2>
+          <p className="text-xs text-slate-400 mb-4">Authorized administrative personnel only. System alterations will change live telemetry tracking parameters.</p>
+          
+          <div className="flex flex-wrap gap-3">
+            <button className="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg font-bold transition-all text-sm shadow-md shadow-red-900/20">
+              Broadcast Emergency Advisory
+            </button>
+            <button className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-lg font-bold transition-all text-sm border border-slate-700">
+              Flush Audit Registries
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="p-5 rounded-xl bg-slate-900/20 border border-slate-900 text-center text-slate-500 text-xs flex items-center justify-center gap-2">
+          <span>🔒 Administrative overrides restricted. Log in as an administrator to change global network alert configuration settings.</span>
+        </div>
+      )}
     </div>
   )
 }

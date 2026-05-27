@@ -1,3 +1,2 @@
-const API_URL = "https://cybersec-nexus-backend.onrender.com"
-
-export default API_URL
+const BASE_URL = "https://cybersec-nexus-backend.onrender.com"
+export default BASE_URL

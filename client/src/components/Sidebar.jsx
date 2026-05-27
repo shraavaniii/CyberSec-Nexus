@@ -13,28 +13,30 @@ function Sidebar({ onClose }) {
     { to: "/threatlens", label: "Threat Analysis", icon: "🔍", protected: true },
     { to: "/logsentry", label: "Log Monitoring", icon: "📋", protected: true },
     { to: "/secure-reports", label: "Secure Reports", icon: "📁", protected: true },
-    { to: "/analyst-portal", label: "Analyst Portal", icon: "🖥️", adminOnly: true },
+    { to: "/analyst-portal", label: "Analyst Portal", icon: "🖥️", protected: true },
   ]
 
+  // Show all links to logged in users (including analyst portal)
+  // Hide protected links from guests
   const visibleLinks = links.filter(link => {
-    if (link.adminOnly) return isLoggedIn && role === "admin"
+    if (link.protected) return isLoggedIn
     return true
   })
 
   return (
-    <div
+    <div 
       className="glass-dark flex flex-col"
       style={{
-        width: "240px",
-        minHeight: "calc(100vh - 65px)",
-        borderRight: "1px solid rgba(0,150,255,0.15)",
-        borderBottom: "1px solid rgba(0,150,255,0.15)",
+        width: "240px", 
+        minHeight: "calc(100vh - 65px)", 
+        borderRight: "1px solid rgba(0, 150, 255, 0.15)", 
+        borderBottom: "1px solid rgba(0, 150, 255, 0.15)", 
         borderRadius: "0 0 16px 0"
       }}
     >
       {/* HEADER */}
       <div className="px-4 py-4 flex items-center justify-between"
-        style={{ borderBottom: "1px solid rgba(0,150,255,0.1)" }}>
+        style={{ borderBottom: "1px solid rgba(0,150,255,0.1)"}}>
         <p className="text-blue-400 text-xs uppercase tracking-widest font-bold opacity-70">
           Navigation
         </p>
@@ -50,6 +52,7 @@ function Sidebar({ onClose }) {
       <div className="flex flex-col gap-1 p-3 flex-1">
         {visibleLinks.map((link) => {
           const isActive = location.pathname === link.to
+          const isAdminOnly = link.to === "/analyst-portal" && role !== "admin" && isLoggedIn
           return (
             <Link
               key={link.to}
@@ -69,7 +72,14 @@ function Sidebar({ onClose }) {
                 {link.icon}
               </span>
               <span className="text-sm">{link.label}</span>
-              {isActive && (
+              
+              {/* LOCK ICON FOR NON-ADMIN ANALYST PORTAL */}
+              {isAdminOnly && (
+                <span className="ml-auto text-xs text-yellow-500" title="Admin only - limited access">🔒</span>
+              )}
+              
+              {/* FIXED ACTIVE INDICATOR */}
+              {isActive && !isAdminOnly && (
                 <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400" />
               )}
             </Link>

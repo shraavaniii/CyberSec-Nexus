@@ -16,7 +16,7 @@ function AnalystPortal() {
   // FETCH REPORTS
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/reports")
+      .get("https://cybersec-nexus-backend.onrender.com/api/reports")
       .then((res) => {
         setReports(res.data)
         setReportsLoading(false)
@@ -27,7 +27,7 @@ function AnalystPortal() {
   // FETCH AUDIT LOGS
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/audit")
+      .get("https://cybersec-nexus-backend.onrender.com/api/audit")
       .then((res) => {
         setAuditLogs(res.data)
         setAuditLoading(false)
@@ -201,7 +201,7 @@ function AnalystPortal() {
                     src={article.image_url}
                     alt="news"
                     className="w-full h-32 object-cover rounded mb-3"
-                    onError={(e) => (e.target.style.display = "none")}
+                    onError={(e) => { e.target.style.display = "none"; }}
                   />
                 )}
                 <p className="text-green-400 text-xs mb-2 uppercase">

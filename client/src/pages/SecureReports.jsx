@@ -10,12 +10,12 @@ function SecureReports() {
   const [title, setTitle] = useState("")
   const [uploading, setUploading] = useState(false)
 
-  // BACKEND API
   const API_URL =
     "https://cybersec-nexus-backend.onrender.com/api/reports"
 
   // FETCH REPORTS
   const fetchReports = async () => {
+
     try {
 
       setLoading(true)
@@ -31,7 +31,6 @@ function SecureReports() {
     } finally {
 
       setLoading(false)
-
     }
   }
 
@@ -46,7 +45,6 @@ function SecureReports() {
 
     if (!selectedFile) return
 
-    // ALLOWED TYPES
     const allowedTypes = [
       "application/pdf",
       "image/png",
@@ -61,7 +59,6 @@ function SecureReports() {
       return
     }
 
-    // MAX SIZE 10MB
     if (selectedFile.size > 10 * 1024 * 1024) {
 
       alert("File size must be under 10MB.")
@@ -105,7 +102,6 @@ function SecureReports() {
 
       alert("Report uploaded successfully!")
 
-      // RESET
       setTitle("")
       setFile(null)
 
@@ -117,39 +113,14 @@ function SecureReports() {
 
       console.error("UPLOAD ERROR:", error)
 
-      if (error.response) {
-
-        alert(error.response.data.message || "Upload failed.")
-
-      } else {
-
-        alert("Server connection failed.")
-      }
+      alert(
+        error.response?.data?.message ||
+        "Upload failed."
+      )
 
     } finally {
 
       setUploading(false)
-    }
-  }
-
-  // DOWNLOAD
-  const handleSecureDownload = async (fileUrl) => {
-
-    try {
-
-      if (!fileUrl) {
-        alert("Invalid file URL")
-        return
-      }
-
-      // OPEN CLOUDINARY FILE DIRECTLY
-      window.open(fileUrl, "_blank")
-
-    } catch (error) {
-
-      console.error("Download Error:", error)
-
-      alert("Download failed.")
     }
   }
 
@@ -162,10 +133,10 @@ function SecureReports() {
       </h1>
 
       <p className="text-gray-400 mb-8">
-        Access, upload, and manage archived vulnerability reports.
+        Upload and manage archived vulnerability reports.
       </p>
 
-      {/* UPLOAD SECTION */}
+      {/* UPLOAD */}
 
       <div className="bg-gray-900 p-6 rounded-lg border border-green-500 max-w-4xl mb-8">
 
@@ -228,7 +199,7 @@ function SecureReports() {
 
       </div>
 
-      {/* REPORT LIST */}
+      {/* REPORTS */}
 
       <div className="bg-gray-900 p-6 rounded-lg border border-green-500 max-w-4xl">
 
@@ -267,7 +238,7 @@ function SecureReports() {
                   </th>
 
                   <th className="py-3 text-green-400 font-mono text-right">
-                    ACTION
+                    STATUS
                   </th>
 
                 </tr>
@@ -293,14 +264,9 @@ function SecureReports() {
 
                     <td className="py-3 text-right">
 
-                      <button
-                        onClick={() =>
-                          handleSecureDownload(report.fileurl)
-                        }
-                        className="bg-transparent hover:bg-green-500 text-green-400 font-semibold hover:text-black py-1 px-4 border border-green-500 hover:border-transparent rounded text-xs transition-all duration-200 cursor-pointer shadow-sm shadow-green-500/20"
-                      >
-                        📥 Download
-                      </button>
+                      <span className="text-green-400 text-xs border border-green-500 px-3 py-1 rounded">
+                        Uploaded Successfully
+                      </span>
 
                     </td>
 

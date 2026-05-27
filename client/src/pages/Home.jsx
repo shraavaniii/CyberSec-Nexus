@@ -156,7 +156,7 @@ function Home() {
       <div className="relative" style={{ zIndex: 2 }}>
 
         {/* HERO SECTION */}
-        <div className="flex flex-col items-center justify-center text-center py-28 px-6">
+        <div className="flex flex-col items-center justify-center text-center pt-10 pb-16 px-6">
 
           {/* GLOWING SHIELD */}
           <div className="relative mb-6">

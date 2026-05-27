@@ -38,11 +38,8 @@ const sendAdminAlert = (username, email) => {
     `
   }
   transporter.sendMail(mailOptions, (err, info) => {
-    if (err) {
-      console.log("Email Error:", err)
-    } else {
-      console.log("Admin alert sent:", info.response)
-    }
+    if (err) console.log("Email Error:", err)
+    else console.log("Admin alert sent:", info.response)
   })
 }
 
@@ -53,68 +50,65 @@ router.post("/register", async (req, res) => {
     return res.status(400).json({ message: "All Fields Required" })
   }
   try {
-    const checkSql = "SELECT * FROM users WHERE email = ?"
-    db.query(checkSql, [email], async (err, result) => {
-      if (err) {
-        console.log(err)
-        return res.status(500).json({ message: "Database Error" })
-      }
-      if (result.length > 0) {
-        return res.status(400).json({ message: "Email Already Registered" })
-      }
-      try {
-        const hashedPassword = await bcrypt.hash(password, 10)
-        const role = "user"
-        const sql =
-          "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)"
-        db.query(sql, [username, email, hashedPassword, role], (err, insertResult) => {
-          if (err) {
-            console.log(err)
-            return res.status(500).json({ message: "Database Error" })
-          }
-          // SEND ADMIN ALERT
-          sendAdminAlert(username, email)
-          return res.json({ message: "User Registered Successfully" })
-        })
-      } catch (hashError) {
-        console.log(hashError)
-        return res.status(500).json({ message: "Server Error" })
-      }
-    })
+    // CHECK IF EMAIL EXISTS
+    const checkResult = await db.query(
+      "SELECT * FROM users WHERE email = $1", [email]
+    )
+    if (checkResult.rows.length > 0) {
+      return res.status(400).json({ message: "Email Already Registered" })
+    }
+
+    // HASH PASSWORD
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    // INSERT USER
+    await db.query(
+      "INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4)",
+      [username, email, hashedPassword, "user"]
+    )
+
+    // SEND ADMIN ALERT
+    sendAdminAlert(username, email)
+
+    return res.json({ message: "User Registered Successfully" })
+
   } catch (error) {
-    console.log(error)
+    console.error("Register Error:", error)
     return res.status(500).json({ message: "Server Error" })
   }
 })
 
 // LOGIN
-router.post("/login", async (req, res) => { // Added 'async' here
-
+router.post("/login", async (req, res) => {
   const { email, password } = req.body
 
-  const sql = "SELECT * FROM users WHERE email = ?"
-
   try {
-    // Modern PostgreSQL query style (No callbacks!)
-    const result = await db.query(sql, [email])
+    const result = await db.query(
+      "SELECT * FROM users WHERE email = $1", [email]
+    )
 
-    if (!result.rows || result.rows.length === 0) {
-      return res.status(404).json("User Not Found")
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "User Not Found" })
     }
 
-    const user = result.rows[0] // Correctly grabs the single user object
+    const user = result.rows[0]
 
     const isMatch = await bcrypt.compare(password, user.password)
-
     if (!isMatch) {
-      return res.status(401).json("Invalid Credentials")
+      return res.status(401).json({ message: "Invalid Credentials" })
     }
 
-    return res.json("Login Successful")
+    // RETURN ALL NEEDED FIELDS
+    return res.json({
+      message: "Login Successful",
+      username: user.username,
+      email: user.email,
+      role: user.role
+    })
 
-  } catch (err) {
-    console.error(err) // This prints the exact error in your Render logs
-    return res.status(500).json("Database Error")
+  } catch (error) {
+    console.error("Login Error:", error)
+    return res.status(500).json({ message: "Database Error" })
   }
 })
 

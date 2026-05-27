@@ -107,7 +107,7 @@ function App() {
 
               {/* ADMIN ONLY */}
               <Route path="/analyst-portal" element={
-                <ProtectedRoute adminOnly={true}>
+                <ProtectedRoute>
                   <AnalystPortal />
                 </ProtectedRoute>
               } />

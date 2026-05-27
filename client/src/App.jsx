@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom"
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import Navbar from "./components/Navbar"
 import Sidebar from "./components/Sidebar"
 import ProtectedRoute from "./components/ProtectedRoute"
@@ -49,15 +49,41 @@ function Particles() {
 }
 
 function App() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
   return (
     <BrowserRouter>
       <div className="grid-overlay" />
       <Particles />
       <div className="relative z-10 min-h-screen">
-        <Navbar />
-        <div className="flex">
-          <Sidebar />
-          <div className="flex-1 p-6 text-white">
+
+        {/* NAVBAR — passes toggle function */}
+        <Navbar onToggleSidebar={() => setSidebarOpen(o => !o)} sidebarOpen={sidebarOpen} />
+
+        <div className="flex relative">
+
+          {/* SIDEBAR OVERLAY — clicking outside closes it */}
+          {sidebarOpen && (
+            <div
+              className="fixed inset-0 z-20"
+              style={{ background: "rgba(0,0,0,0.4)" }}
+              onClick={() => setSidebarOpen(false)}
+            />
+          )}
+
+          {/* SIDEBAR — slides in from left */}
+          <div
+            className="fixed top-0 left-0 h-full z-30 transition-transform duration-300 ease-in-out"
+            style={{
+              transform: sidebarOpen ? "translateX(0)" : "translateX(-100%)",
+              marginTop: "65px"
+            }}
+          >
+            <Sidebar onClose={() => setSidebarOpen(false)} />
+          </div>
+
+          {/* MAIN CONTENT — full width always */}
+          <div className="flex-1 p-6 text-white w-full">
             <Routes>
               {/* PUBLIC */}
               <Route path="/" element={<Home />} />
@@ -65,7 +91,7 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
 
-              {/* PROTECTED — ANY LOGGED IN USER */}
+              {/* PROTECTED */}
               <Route path="/dashboard" element={
                 <ProtectedRoute><Dashboard /></ProtectedRoute>
               } />

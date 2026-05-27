@@ -4,8 +4,16 @@ import axios from "axios"
 const NEWS_API_KEY = "pub_88ed07b232f2408b8835604828b21a3c"
 
 // ADDED: Helper function to force Cloudinary files to download instead of opening in a new tab
+// REPLACE your old makeDownloadLink function with this one:
 const makeDownloadLink = (url) => {
   if (!url) return "";
+  
+  // If it's a raw file (PDF, docx, txt), tell Cloudinary to force attachment disposition
+  if (url.includes("/raw/upload/")) {
+    return url.replace("/raw/upload/", "/raw/upload/fl_attachment/");
+  }
+  
+  // Backup for standard images/videos
   return url.replace("/upload/", "/upload/fl_attachment/");
 };
 
@@ -173,7 +181,8 @@ function AnalystPortal() {
                       <td className="py-2">
                         <a 
                           href={makeDownloadLink(report.fileurl)} 
-                          download={report.filename}
+                          target="_blank" 
+                          rel="noopener noreferrer" 
                           className="inline-block bg-black border border-green-500 text-green-400 text-xs px-3 py-1 rounded hover:bg-green-500 hover:text-black transition-colors"
                         >
                           📥 Download ({report.filename})

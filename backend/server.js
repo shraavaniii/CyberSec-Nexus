@@ -4,7 +4,7 @@ import db from "./db.js"
 import authRoutes from "./routes/auth.js"
 import threatRoutes from "./routes/threat.js"
 import logRoutes from "./routes/logs.js"
-import reportRoutes from "./routes/reports.js"
+import reportRoutes from './routes/reports.js'; 
 import auditRoutes from "./routes/audit.js"
 import dashboardRoutes from "./routes/dashboard.js"
 

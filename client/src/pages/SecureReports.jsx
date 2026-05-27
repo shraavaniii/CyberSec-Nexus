@@ -45,7 +45,7 @@ function SecureReports() {
     setUploading(true)
     const formData = new FormData()
     formData.append("title", title)
-    formData.append("file", file)
+    formData.append("file", file[0]);
 
     try {
       await axios.post("https://onrender.com", formData, {
@@ -63,7 +63,7 @@ function SecureReports() {
     } finally {
       setUploading(false)
     }
-  }
+  };
 
   // 3. SECURE FILE DOWNLOAD LOGIC HANDLER
   const handleSecureDownload = async (fileUrl, fileName) => {

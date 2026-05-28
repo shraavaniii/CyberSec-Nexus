@@ -1,289 +1,214 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
 
+const BASE_URL = "https://cybersec-nexus-backend.onrender.com"
+
 function SecureReports() {
-
-  const [reports, setReports] = useState([])
-  const [loading, setLoading] = useState(true)
-
-  const [file, setFile] = useState(null)
   const [title, setTitle] = useState("")
-  const [uploading, setUploading] = useState(false)
+  const [file, setFile] = useState(null)
+  const [message, setMessage] = useState("")
+  const [success, setSuccess] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [reports, setReports] = useState([])
+  const [reportsLoading, setReportsLoading] = useState(true)
 
-  const API_URL =
-    "https://cybersec-nexus-backend.onrender.com/api/reports"
+  const username = localStorage.getItem("username")
 
-  // FETCH REPORTS
-  const fetchReports = async () => {
+  // FETCH ONLY THIS USER'S REPORTS
+  useEffect(() => {
+    fetchMyReports()
+  }, [])
+
+  const fetchMyReports = async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/api/reports/my/${username}`)
+      setReports(res.data)
+    } catch (error) {
+      console.log(error)
+    } finally {
+      setReportsLoading(false)
+    }
+  }
+
+  const handleUpload = async (e) => {
+    e.preventDefault()
+
+    if (!title.trim()) {
+      setSuccess(false)
+      setMessage("Please enter a report title")
+      return
+    }
+    if (!file) {
+      setSuccess(false)
+      setMessage("Please select a file")
+      return
+    }
+
+    const formData = new FormData()
+    formData.append("title", title)
+    formData.append("file", file)
+    formData.append("uploaded_by", username)
 
     try {
-
       setLoading(true)
+      const res = await axios.post(`${BASE_URL}/api/reports`, formData)
 
-      const res = await axios.get(API_URL)
+      setSuccess(true)
+      setMessage(res.data.message || "Report Uploaded Successfully")
 
-      setReports(res.data)
+      // LOG TO AUDIT
+      await axios.post(`${BASE_URL}/api/audit`, {
+        action: "Report Uploaded",
+        detail: `Report "${title}" uploaded by ${username} (${file.name})`
+      })
 
-    } catch (err) {
+      // CLEAR FORM
+      setTitle("")
+      setFile(null)
+      e.target.reset()
 
-      console.error("Fetch Reports Error:", err)
+      // REFRESH MY REPORTS
+      fetchMyReports()
 
+    } catch (error) {
+      console.log(error)
+      setSuccess(false)
+      setMessage(error.response?.data?.message || "Upload Failed")
     } finally {
-
       setLoading(false)
     }
   }
 
-  useEffect(() => {
-    fetchReports()
-  }, [])
-
-  // FILE CHANGE
-  const handleFileChange = (e) => {
-
-    const selectedFile = e.target.files[0]
-
-    if (!selectedFile) return
-
-    const allowedTypes = [
-      "application/pdf",
-      "image/png",
-      "image/jpeg",
-      "image/jpg",
-      "text/plain"
-    ]
-
-    if (!allowedTypes.includes(selectedFile.type)) {
-
-      alert("Only PDF, TXT, PNG, JPG files allowed.")
-      return
-    }
-
-    if (selectedFile.size > 10 * 1024 * 1024) {
-
-      alert("File size must be under 10MB.")
-      return
-    }
-
-    setFile(selectedFile)
-  }
-
-  // UPLOAD
-  const handleUploadSubmit = async (e) => {
-
-    e.preventDefault()
-
-    if (!title || !file) {
-
-      alert("Please enter title and select file.")
-      return
-    }
-
-    try {
-
-      setUploading(true)
-
-      const formData = new FormData()
-
-      formData.append("title", title)
-      formData.append("file", file)
-
-      const response = await axios.post(
-        API_URL,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data"
-          }
-        }
-      )
-
-      console.log(response.data)
-
-      alert("Report uploaded successfully!")
-
-      setTitle("")
-      setFile(null)
-
-      document.getElementById("fileInput").value = ""
-
-      fetchReports()
-
-    } catch (error) {
-
-      console.error("UPLOAD ERROR:", error)
-
-      alert(
-        error.response?.data?.message ||
-        "Upload failed."
-      )
-
-    } finally {
-
-      setUploading(false)
-    }
-  }
-
   return (
-
-    <div className="p-6">
-
-      <h1 className="text-4xl text-green-500 font-bold mb-2">
-        🔒 Secure Incident Records
-      </h1>
-
-      <p className="text-gray-400 mb-8">
-        Upload and manage archived vulnerability reports.
+    <div className="p-2">
+      <h1 className="text-4xl font-bold text-white mb-2">Secure Reports</h1>
+      <p className="text-blue-300 text-sm mb-8 opacity-70">
+        Upload and access your personal security reports and investigation files
       </p>
 
-      {/* UPLOAD */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-      <div className="bg-gray-900 p-6 rounded-lg border border-green-500 max-w-4xl mb-8">
+        {/* UPLOAD FORM */}
+        <div className="glass rounded-2xl p-8"
+          style={{ border: "1px solid rgba(0,150,255,0.2)" }}>
+          <h2 className="text-xl font-bold text-white mb-6">📤 Upload Report</h2>
 
-        <h2 className="text-2xl text-green-400 font-bold mb-4">
-          📤 Upload New Incident Telemetry
-        </h2>
+          <form onSubmit={handleUpload} className="flex flex-col gap-5">
+            <div className="flex flex-col gap-1">
+              <label className="text-blue-300 text-xs uppercase tracking-widest">
+                Report Title
+              </label>
+              <input
+                type="text"
+                placeholder="Enter Report Title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="p-3 text-sm"
+                disabled={loading}
+              />
+            </div>
 
-        <form
-          onSubmit={handleUploadSubmit}
-          className="flex flex-col md:flex-row gap-4 items-end"
-        >
+            <div className="flex flex-col gap-1">
+              <label className="text-blue-300 text-xs uppercase tracking-widest">
+                Select File
+              </label>
+              <div className="p-3 rounded-xl text-sm text-blue-200"
+                style={{ border: "1px solid rgba(0,150,255,0.3)", background: "rgba(5,15,40,0.8)" }}>
+                <input
+                  type="file"
+                  accept=".pdf,.txt,.doc,.docx,.png,.jpg,.jpeg"
+                  onChange={(e) => setFile(e.target.files[0])}
+                  className="text-blue-200 w-full"
+                  disabled={loading}
+                />
+              </div>
+              {file && (
+                <p className="text-blue-400 text-xs mt-1 opacity-70">
+                  Selected: {file.name} ({(file.size / 1024).toFixed(1)} KB)
+                </p>
+              )}
+            </div>
 
-          {/* TITLE */}
+            <button
+              className="btn-glow p-3 rounded-xl font-bold text-base flex items-center justify-center gap-3 disabled:opacity-70"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                  <span>Uploading...</span>
+                </>
+              ) : (
+                "Upload Report"
+              )}
+            </button>
+          </form>
 
-          <div className="flex flex-col flex-1 gap-2 w-full">
+          {message && (
+            <div className="mt-6 rounded-xl p-4 animate-fade-up"
+              style={{
+                background: success ? "rgba(0,200,100,0.1)" : "rgba(255,50,50,0.1)",
+                border: `1px solid ${success ? "rgba(0,200,100,0.3)" : "rgba(255,50,50,0.3)"}`
+              }}>
+              <p className={`font-bold text-sm ${success ? "text-green-400" : "text-red-400"}`}>
+                {success ? "✅" : "❌"} {message}
+              </p>
+            </div>
+          )}
+        </div>
 
-            <label className="text-gray-400 text-sm">
-              Report Title
-            </label>
+        {/* MY REPORTS LIST */}
+        <div className="glass rounded-2xl p-8"
+          style={{ border: "1px solid rgba(0,150,255,0.2)" }}>
+          <h2 className="text-xl font-bold text-white mb-2">📁 My Reports</h2>
+          <p className="text-blue-400 text-xs mb-6 opacity-60">
+            Showing reports uploaded by <span className="text-blue-300 font-bold">{username}</span>
+          </p>
 
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., XSS Attack Log"
-              className="bg-black border border-gray-700 text-white p-2 rounded focus:border-green-500 outline-none text-sm"
-            />
+          {reportsLoading && (
+            <p className="text-blue-300 animate-pulse">Loading your reports...</p>
+          )}
 
-          </div>
+          {!reportsLoading && reports.length === 0 && (
+            <div className="text-center py-8">
+              <p className="text-4xl mb-3">📭</p>
+              <p className="text-blue-400 opacity-60 text-sm">
+                You haven't uploaded any reports yet.
+              </p>
+            </div>
+          )}
 
-          {/* FILE */}
-
-          <div className="flex flex-col flex-1 gap-2 w-full">
-
-            <label className="text-gray-400 text-sm">
-              Select File
-            </label>
-
-            <input
-              id="fileInput"
-              type="file"
-              accept=".pdf,.png,.jpg,.jpeg,.txt"
-              onChange={handleFileChange}
-              className="bg-black border border-gray-700 text-gray-400 p-1.5 rounded focus:border-green-500 outline-none text-sm file:bg-gray-800 file:text-green-400 file:border-0 file:px-3 file:py-1 file:rounded file:mr-2 file:cursor-pointer hover:file:bg-gray-700"
-            />
-
-          </div>
-
-          {/* BUTTON */}
-
-          <button
-            type="submit"
-            disabled={uploading}
-            className="w-full md:w-auto bg-green-500 hover:bg-green-600 text-black font-bold py-2 px-6 rounded text-sm transition-all cursor-pointer disabled:bg-gray-700 disabled:text-gray-500"
-          >
-            {uploading ? "Uploading..." : "Upload Report"}
-          </button>
-
-        </form>
+          {!reportsLoading && reports.length > 0 && (
+            <div className="flex flex-col gap-3 max-h-96 overflow-y-auto pr-1">
+              {reports.map((report) => (
+                <div key={report.id}
+                  className="flex items-center justify-between p-4 rounded-xl transition-all hover:-translate-y-0.5"
+                  style={{ background: "rgba(0,100,255,0.08)", border: "1px solid rgba(0,150,255,0.15)" }}>
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <span className="text-2xl flex-shrink-0">📄</span>
+                    <div className="min-w-0">
+                      <p className="text-white text-sm font-bold truncate">{report.title}</p>
+                      <p className="text-blue-400 text-xs opacity-60 truncate">{report.filename}</p>
+                    </div>
+                  </div>
+                  {report.fileurl && (
+                    <a
+                      href={report.fileurl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="ml-3 flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold text-white transition-all hover:scale-105"
+                      style={{ background: "linear-gradient(135deg, #0078ff, #00c8ff)" }}
+                    >
+                      Download
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
       </div>
-
-      {/* REPORTS */}
-
-      <div className="bg-gray-900 p-6 rounded-lg border border-green-500 max-w-4xl">
-
-        <h2 className="text-2xl text-green-400 font-bold mb-4">
-          📄 Repository Archives
-        </h2>
-
-        {loading && (
-          <p className="text-yellow-400 animate-pulse">
-            Loading reports...
-          </p>
-        )}
-
-        {!loading && reports.length === 0 && (
-          <p className="text-gray-400">
-            No reports found.
-          </p>
-        )}
-
-        {!loading && reports.length > 0 && (
-
-          <div className="overflow-x-auto">
-
-            <table className="w-full text-left border-collapse">
-
-              <thead>
-
-                <tr className="border-b border-green-500">
-
-                  <th className="py-3 pr-4 text-green-400 font-mono">
-                    NODE
-                  </th>
-
-                  <th className="py-3 pr-4 text-green-400 font-mono">
-                    REPORT TITLE
-                  </th>
-
-                  <th className="py-3 text-green-400 font-mono text-right">
-                    STATUS
-                  </th>
-
-                </tr>
-
-              </thead>
-
-              <tbody>
-
-                {reports.map((report, index) => (
-
-                  <tr
-                    key={report.id}
-                    className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors"
-                  >
-
-                    <td className="py-3 pr-4 text-gray-500 font-mono">
-                      #{index + 1}
-                    </td>
-
-                    <td className="py-3 pr-4 text-white font-medium">
-                      {report.title}
-                    </td>
-
-                    <td className="py-3 text-right">
-
-                      <span className="text-green-400 text-xs border border-green-500 px-3 py-1 rounded">
-                        Uploaded Successfully
-                      </span>
-
-                    </td>
-
-                  </tr>
-
-                ))}
-
-              </tbody>
-
-            </table>
-
-          </div>
-
-        )}
-
-      </div>
-
     </div>
   )
 }

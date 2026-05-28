@@ -10,106 +10,66 @@ const router = express.Router()
 cloudinary.config({
   cloud_name: "ddo7ya2i2",
   api_key: "224613951879694",
-  api_secret: process.env.CLOUDINARY_API_SECRET
+  api_secret: process.env.CLOUDINARY_SECRET
 })
 
-// STORAGE
+// MULTER CLOUDINARY STORAGE
 const storage = new CloudinaryStorage({
   cloudinary,
-
-  params: async (req, file) => {
-
-    return {
-      folder: "cybersec-nexus-reports",
-
-      // AUTO DETECT FILE TYPE
-      resource_type: "auto",
-
-      public_id:
-        Date.now() +
-        "-" +
-        file.originalname.replace(/\s/g, "_")
-    }
+  params: {
+    folder: "cybersec-nexus-reports",
+    resource_type: "raw",
+    allowed_formats: ["pdf", "txt", "doc", "docx", "png", "jpg", "jpeg"],
+    public_id: (req, file) => Date.now() + "-" + file.originalname.replace(/\s/g, "_")
   }
 })
 
-// MULTER
-const upload = multer({
-  storage,
-
-  limits: {
-    fileSize: 10 * 1024 * 1024
-  }
-})
+const upload = multer({ storage })
 
 // UPLOAD REPORT
-router.post(
-  "/reports",
-  upload.single("file"),
-  async (req, res) => {
-
-    try {
-
-      if (!req.file) {
-        return res.status(400).json({
-          message: "No file uploaded"
-        })
-      }
-
-      const { title } = req.body
-
-      const filename = req.file.originalname
-
-      const fileurl = req.file.path
-
-      await db.query(
-        `
-        INSERT INTO reports
-        (title, filename, fileurl)
-        VALUES ($1, $2, $3)
-        `,
-        [title, filename, fileurl]
-      )
-
-      return res.json({
-        message: "Report Uploaded Successfully"
-      })
-
-    } catch (error) {
-
-      console.error("UPLOAD ERROR:")
-      console.error(error)
-
-      return res.status(500).json({
-        message: error.message || "Upload failed"
-      })
-    }
-  }
-)
-
-// GET REPORTS
-router.get("/reports", async (req, res) => {
-
+router.post("/reports", upload.single("file"), async (req, res) => {
   try {
+    const { title, uploaded_by } = req.body
+    const filename = req.file.originalname
+    const fileurl = req.file.path
 
-    const result = await db.query(
-      `
-      SELECT *
-      FROM reports
-      ORDER BY id DESC
-      `
+    await db.query(
+      "INSERT INTO reports (title, filename, fileurl, uploaded_by) VALUES ($1, $2, $3, $4)",
+      [title, filename, fileurl, uploaded_by]
     )
 
-    return res.json(result.rows)
-
+    return res.json({ message: "Report Uploaded Successfully" })
   } catch (error) {
+    console.error("Upload Error:", error)
+    return res.status(500).json({ message: "Upload Failed" })
+  }
+})
 
-    console.error("FETCH REPORTS ERROR:")
-    console.error(error)
+// GET REPORTS BY USER
+router.get("/reports/my/:username", async (req, res) => {
+  try {
+    const { username } = req.params
+    const result = await db.query(
+      "SELECT * FROM reports WHERE uploaded_by = $1 ORDER BY id DESC",
+      [username]
+    )
+    return res.json(result.rows)
+  } catch (error) {
+    console.error("Fetch My Reports Error:", error)
+    return res.status(500).json({ message: "Failed to Fetch Reports" })
+  }
+})
 
-    return res.status(500).json({
-      message: "Failed to fetch reports"
-    })
+// GET ALL REPORTS (admin - analyst portal)
+router.get("/reports", async (req, res) => {
+  try {
+    const result = await db.query(
+      "SELECT * FROM reports ORDER BY id DESC"
+    )
+    return res.json(result.rows)
+  } catch (error) {
+    console.error("Fetch Reports Error:", error)
+    return res.status(500).json({ message: "Failed to Fetch Reports" })
   }
 })
 

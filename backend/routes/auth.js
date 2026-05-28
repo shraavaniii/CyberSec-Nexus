@@ -15,11 +15,7 @@ const sendAdminAlert = async (username, email) => {
       },
       body: JSON.stringify({
         from: "CyberSec Nexus <onboarding@resend.dev>",
-        to: [
-          "shravanihendr@gmail.com",
-          "revadeogade@gmail.com",
-          "tejaswinidaine@gmail.com"
-        ],
+        to: ["shravanihendr@gmail.com"],
         subject: "🚨 New User Registered — CyberSec Nexus",
         html: `
           <div style="font-family: Arial, sans-serif; background: #0a0a0a; color: #fff; padding: 30px; border-radius: 10px;">

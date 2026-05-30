@@ -1,41 +1,21 @@
 import express from "express"
 import multer from "multer"
-import { v2 as cloudinary } from "cloudinary"
-import { CloudinaryStorage } from "multer-storage-cloudinary"
 import db from "../db.js"
 
 const router = express.Router()
 
-// CLOUDINARY CONFIG
-cloudinary.config({
-  cloud_name: "ddo7ya2i2",
-  api_key: "224613951879694",
-  api_secret: process.env.CLOUDINARY_SECRET
-})
-
-// MULTER CLOUDINARY STORAGE
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: "cybersec-nexus-reports",
-    resource_type: "raw",
-    allowed_formats: ["pdf", "txt", "doc", "docx", "png", "jpg", "jpeg"],
-    public_id: (req, file) => Date.now() + "-" + file.originalname.replace(/\s/g, "_")
-  }
-})
-
-const upload = multer({ storage })
+// MEMORY STORAGE — no disk, no cloud
+const upload = multer({ storage: multer.memoryStorage() })
 
 // UPLOAD REPORT
 router.post("/reports", upload.single("file"), async (req, res) => {
   try {
     const { title, uploaded_by } = req.body
-    const filename = req.file.originalname
-    const fileurl = req.file.path
+    const filename = req.file ? req.file.originalname : "unknown"
 
     await db.query(
-      "INSERT INTO reports (title, filename, fileurl, uploaded_by) VALUES ($1, $2, $3, $4)",
-      [title, filename, fileurl, uploaded_by]
+      "INSERT INTO reports (title, filename, uploaded_by) VALUES ($1, $2, $3)",
+      [title, filename, uploaded_by]
     )
 
     return res.json({ message: "Report Uploaded Successfully" })
@@ -60,7 +40,7 @@ router.get("/reports/my/:username", async (req, res) => {
   }
 })
 
-// GET ALL REPORTS (admin - analyst portal)
+// GET ALL REPORTS
 router.get("/reports", async (req, res) => {
   try {
     const result = await db.query(

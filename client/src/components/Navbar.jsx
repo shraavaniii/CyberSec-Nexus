@@ -80,9 +80,8 @@ function Navbar({ onToggleSidebar, sidebarOpen }) {
             </div>
             <button
               onClick={() => navigate("/login")}
-              className="border border-blue-500 text-blue-300 px-4 py-2 rounded-full font-bold hover:bg-blue-500 hover:text-white text-sm transition-all duration-200 hover:scale-105"
-            >
-              Login
+              className="border border-blue-500 text-blue-300 px-4 py-2 rounded-full font-bold hover:bg-blue-500 hover:text-white text-sm transition-all duration-200 hover:scale-105">
+                Login
             </button>
             <button
               onClick={() => navigate("/register")}

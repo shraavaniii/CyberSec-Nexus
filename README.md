@@ -303,31 +303,34 @@ CyberSec Nexus demonstrates several basic cybersecurity controls:
 
 ### 🏠 Home Page
 
-![CyberSec Nexus Home](screenshots/HomePage.png)
+![CyberSec Nexus Home](screenshots/home.jpg)
 
 ### 🔐 Login
 
-![CyberSec Nexus Login](screenshots/login.png)
+![CyberSec Nexus Login](screenshots/login.jpg)
 
 ### 📊 Dashboard
 
-![CyberSec Nexus Dashboard](screenshots/dashboard.png)
+![CyberSec Nexus Dashboard](screenshots/dashboard.jpg)
 
 ### 🎯 ThreatLens
 
-![CyberSec Nexus ThreatLens](screenshots/threatlens.png)
+![CyberSec Nexus ThreatLens](screenshots/threat-analysis.jpg)
 
 ### 📊 LogSentry
+Example-1
+![CyberSec Nexus LogSentry](screenshots/log-monitoring(ex-1).jpg)
 
-![CyberSec Nexus LogSentry](screenshots/logsentry.png)
+Example-2
+![CyberSec Nexus LogSentry](screenshots/log-monitoring(ex-2).jpg)
 
 ### 📁 SecureReports
 
-![CyberSec Nexus SecureReports](screenshots/securereports.png)
+![CyberSec Nexus SecureReports](screenshots/secure-reports.jpg)
 
 ### 👨‍💻 Analyst Portal
 
-![CyberSec Nexus Analyst Portal](screenshots/analyst-portal.png)
+![CyberSec Nexus Analyst Portal](screenshots/analyst-portal.jpg)
 
 > Replace the screenshot filenames above with the actual filenames you upload to the `screenshots/` directory.
 
